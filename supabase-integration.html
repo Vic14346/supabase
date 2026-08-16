@@ -1,43 +1,51 @@
-<script>
-    // ============================================
-    // SUPABASE CONFIGURATION
-    // ============================================
-    const SUPABASE_URL = "https://gyaayoiubitxixevvzut.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_z6fbIppsOlrljaecVuCI_w_6xdhGFM3";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velectron Supabase Integration</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Velectron Supabase Integration</h1>
+    <div id="status"></div>
 
-    // Initialize Supabase
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script>
+        // SUPABASE CONFIGURATION
+        const SUPABASE_URL = "https://gyaayoiubitxixevvzut.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_z6fbIppsOlrljaecVuCI_w_6xdhGFM3";
 
-    // ============================================
-    // TEST CONNECTION
-    // ============================================
-    async function testSupabaseConnection() {
-        try {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = '<p>Testing Supabase connection...</p>';
+        // Initialize Supabase (ONLY ONCE)
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            const { data, error } = await supabase.from('games').select('count');
-            
-            if (error) throw error;
+        // TEST CONNECTION
+        async function testConnection() {
+            try {
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = '<p>Testing Supabase connection...</p>';
 
-            statusDiv.innerHTML = `
-                <h2 style="color: green;">✅ SUPABASE CONNECTION SUCCESSFUL</h2>
-                <p>Games table: Connected</p>
-            `;
+                const { data, error } = await supabaseClient.from('games').select('count');
+                
+                if (error) throw error;
 
-            console.log('✅ Supabase connected successfully');
-            return true;
+                statusDiv.innerHTML = `
+                    <h2 style="color: green;">✅ SUPABASE CONNECTION SUCCESSFUL</h2>
+                    <p>✅ Games table connected</p>
+                `;
 
-        } catch (error) {
-            document.getElementById('status').innerHTML = `
-                <h2 style="color: red;">❌ CONNECTION FAILED</h2>
-                <p>Error: ${error.message}</p>
-            `;
-            console.error('❌ Error:', error);
-            return false;
+                console.log('✅ Supabase connected successfully');
+
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <h2 style="color: red;">❌ CONNECTION FAILED</h2>
+                    <p>Error: ${error.message}</p>
+                `;
+                console.error('❌ Error:', error);
+            }
         }
-    }
 
-    // Run test when page loads
-    window.addEventListener('load', testSupabaseConnection);
-</script>
+        // Run test on page load
+        window.addEventListener('load', testConnection);
+    </script>
+</body>
+</html>
