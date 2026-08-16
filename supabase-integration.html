@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velectron Supabase Integration</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Velectron Supabase Integration</h1>
+    <div id="status"></div>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = "https://gyaayoiubitxixevvzut.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_z6fbIppsOlrljaecVuCI_w_6xdhGFM3";
+
+        // Initialize Supabase
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================
+        // GAMING CREATOR FUNCTIONS
+        // ============================================
+        async function submitGameScore(playerName, score, level) {
+            try {
+                const { data, error } = await supabase
+                    .from('games')
+                    .insert([
+                        {
+                            game_title: 'Asteroid Blaster',
+                            player_name: playerName,
+                            score: score,
+                            level: level,
+                            game_status: 'completed'
+                        }
+                    ]);
+                
+                if (error) throw error;
+                console.log('✅ Game score submitted:', data);
+                return data;
+            } catch (error) {
+                console.error('❌ Error submitting game score:', error);
+            }
+        }
+
+        async function storeGameAsset(assetName, assetType, fileUrl, description, category) {
+            try {
+                const { data, error } = await supabase
+                    .from('assets')
+                    .insert([
+                        {
+                            asset_name: assetName,
+                            asset_type: assetType,
+                            file_url: fileUrl,
+                            description: description,
+                            category: category
+                        }
+                    ]);
+                
+                if (error) throw error;
+                console.log('✅ Asset stored:', data);
+                return data;
+            } catch (error) {
+                console.error('❌ Error storing asset:', error);
+            }
+        }
+
+        // ============================================
+        // DATA COLLECTOR FUNCTIONS
+        // ============================================
+        async function storeUserData(username, email, playerId) {
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .insert([
+                        {
+                            username: username,
+                            email: email,
+                            player_id: playerId,
+                            total_score: 0,
+                            games_played: 0
+                        }
+                    ]);
+                
+                if (error) throw error;
+                console.log('✅ User data stored:', data);
+                return data;
+            } catch (error) {
+                console.error('❌ Error storing user data:', error);
+            }
+        }
+
+        async function storeEmailData(email, username, organization) {
+            try {
+                const { data, error } = await supabase
+                    .from('email_data')
+                    .insert([
+                        {
+                            email: email,
+                            username: username,
+                            organization: organization
+                        }
+                    ]);
+                
+                if (error) throw error;
+                console.log('✅ Email data stored:', data);
+                return data;
+            } catch (error) {
+                console.error('❌ Error storing email data:', error);
+            }
+        }
+
+        // ============================================
+        // GAME RESOURCES FUNCTIONS
+        // ============================================
+        async function storeGameResource(resourceName, resourceType, fileUrl, format) {
+            try {
+                const { data, error } = await supabase
+                    .from('game_resources')
+                    .insert([
+                        {
+                            resource_name: resourceName,
+                            resource_type: resourceType,
+                            file_url: fileUrl,
+                            format: format
+                        }
+                    ]);
+                
+                if (error) throw error;
+                console.log('✅ Game resource stored:', data);
+                return data;
+            } catch (error) {
+                console.error('❌ Error storing game resource:', error);
+            }
+        }
+
+        // ============================================
+        // REAL-TIME SUBSCRIPTIONS
+        // ============================================
+        function subscribeToGameScores() {
+            supabase
+                .from('games')
+                .on('*', payload => {
+                    console.log('📊 Game score update:', payload);
+                })
+                .subscribe();
+        }
+
+        function subscribeToEmailData() {
+            supabase
+                .from('email_data')
+                .on('*', payload => {
+                    console.log('📧 Email data update:', payload);
+                })
+                .subscribe();
+        }
+
+        function subscribeToAssets() {
+            supabase
+                .from('assets')
+                .on('*', payload => {
+                    console.log('🎮 Asset update:', payload);
+                })
+                .subscribe();
+        }
+
+        // ============================================
+        // CONNECTION TEST
+        // ============================================
+        async function testSupabaseConnection() {
+            try {
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = '<p>Testing Supabase connection...</p>';
+
+                // Test games table
+                const { data: gamesData, error: gamesError } = await supabase
+                    .from('games')
+                    .select('count');
+                
+                if (gamesError) throw gamesError;
+
+                // Test users table
+                const { data: usersData, error: usersError } = await supabase
+                    .from('users')
+                    .select('count');
+                
+                if (usersError) throw usersError;
+
+                // Test email_data table
+                const { data: emailData, error: emailError } = await supabase
+                    .from('email_data')
+                    .select('count');
+                
+                if (emailError) throw emailError;
+
+                // Test assets table
+                const { data: assetsData, error: assetsError } = await supabase
+                    .from('assets')
+                    .select('count');
+                
+                if (assetsError) throw assetsError;
+
+                // Test game_resources table
+                const { data: resourcesData, error: resourcesError } = await supabase
+                    .from('game_resources')
+                    .select('count');
+                
+                if (resourcesError) throw resourcesError;
+
+                // All tests passed
+                statusDiv.innerHTML = `
+                    <h2 style="color: green;">✅ ALL SUPABASE CONNECTIONS SUCCESSFUL</h2>
+                    <p>✅ Games table: Connected</p>
+                    <p>✅ Users table: Connected</p>
+                    <p>✅ Email_data table: Connected</p>
+                    <p>✅ Assets table: Connected</p>
+                    <p>✅ Game_resources table: Connected</p>
+                    <p><strong>Real-time sync: ENABLED</strong></p>
+                `;
+
+                // Enable subscriptions
+                subscribeToGameScores();
+                subscribeToEmailData();
+                subscribeToAssets();
+
+                console.log('🎯 ALL VELECTRON AGENTS CONNECTED TO SUPABASE');
+                return true;
+
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <h2 style="color: red;">❌ CONNECTION FAILED</h2>
+                    <p>Error: ${error.message}</p>
+                `;
+                console.error('❌ Supabase connection error:', error);
+                return false;
+            }
+        }
+
+        // Run test on page load
+        window.addEventListener('load', testSupabaseConnection);
+    </script>
+</body>
+</html>
