@@ -11,24 +11,21 @@
     <div id="status"></div>
 
     <script>
-        // SUPABASE CONFIGURATION
-        const SUPABASE_URL = "https://gyaayoiubitxixevvzut.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_z6fbIppsOlrljaecVuCI_w_6xdhGFM3";
-
-        // Initialize Supabase (ONLY ONCE)
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // TEST CONNECTION
-        async function testConnection() {
+        // Wait for Supabase library to load
+        setTimeout(async function() {
             try {
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerHTML = '<p>Testing Supabase connection...</p>';
+                const SUPABASE_URL = "https://gyaayoiubitxixevvzut.supabase.co";
+                const SUPABASE_KEY = "sb_publishable_z6fbIppsOlrljaecVuCI_w_6xdhGFM3";
 
+                // Initialize Supabase - CORRECT WAY
+                const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+                // Test connection
                 const { data, error } = await supabaseClient.from('games').select('count');
                 
                 if (error) throw error;
 
-                statusDiv.innerHTML = `
+                document.getElementById('status').innerHTML = `
                     <h2 style="color: green;">✅ SUPABASE CONNECTION SUCCESSFUL</h2>
                     <p>✅ Games table connected</p>
                 `;
@@ -42,10 +39,7 @@
                 `;
                 console.error('❌ Error:', error);
             }
-        }
-
-        // Run test on page load
-        window.addEventListener('load', testConnection);
+        }, 1000);
     </script>
 </body>
 </html>
