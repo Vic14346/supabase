@@ -1027,3 +1027,1367 @@
 </body>
 </html>
 Gist Filename
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velectron Command Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: #00ff00;
+            color: #000;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        h1 {
+            color: #1e3c72;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        /* STATUS SECTION */
+        .status-section {
+            margin-bottom: 40px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .status-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2a5298;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-indicator {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .status-indicator.online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-indicator.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* STATS SECTION */
+        .stats-section {
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        /* DATA TABLE */
+        .data-table {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #2a5298;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        /* UPDATES LOG */
+        .updates-section {
+            margin-top: 40px;
+        }
+
+        .updates-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #00ff00;
+        }
+
+        .update-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+        }
+
+        /* AGENTS SECTION */
+        .agents-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .agent-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .agent-card h3 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .agent-card p {
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .agent-status {
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .agent-card button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .agent-card button:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
+
+        /* FORM STYLES */
+        .form-section {
+            background: #f5f5f5;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #1e3c72;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .btn-success:hover {
+            background: #00dd00;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+            }
+
+            .nav-links {
+                justify-content: center;
+            }
+
+            .status-grid,
+            .stats-grid,
+            .agents-section {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav class="navbar">
+            <div class="logo">🎮 VELECTRON COMMAND CENTER</div>
+            <ul class="nav-links">
+                <li><a onclick="showPage('dashboard')" class="nav-link active">Dashboard</a></li>
+                <li><a onclick="showPage('insert-data')" class="nav-link">Insert Data</a></li>
+                <li><a onclick="showPage('agents')" class="nav-link">Agents</a></li>
+                <li><a onclick="showPage('leaderboard')" class="nav-link">Leaderboard</a></li>
+                <li><a onclick="showPage('users')" class="nav-link">Users</a></li>
+                <li><a onclick="showPage('assets')" class="nav-link">Assets</a></li>
+                <li><a onclick="showPage('emails')" class="nav-link">Emails</a></li>
+            </ul>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- DASHBOARD PAGE -->
+            <div id="dashboard" class="page active">
+                <h1>Velectron Command Center Dashboard</h1>
+                
+                <section class="status-section">
+                    <h2>System Status</h2>
+                    <div class="status-grid">
+                        <div class="status-card">
+                            <h3>Supabase Connection</h3>
+                            <div id="supabase-status" class="status-indicator offline">🔴 Connecting...</div>
+                        </div>
+                        <div class="status-card">
+                            <h3>Gaming Creator</h3>
+                            <div id="gaming-status" class="status-indicator offline">🔴 Offline</div>
+                        </div>
+                        <div class="status-card">
+                            <h3>Data Collector</h3>
+                            <div id="data-status" class="status-indicator offline">🔴 Offline</div>
+                        </div>
+                        <div class="status-card">
+                            <h3>Email Auto-Responder</h3>
+                            <div id="email-status" class="status-indicator offline">🔴 Offline</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="stats-section">
+                    <h2>Quick Stats</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Games</h3>
+                            <p id="total-games" class="stat-number">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Users</h3>
+                            <p id="total-users" class="stat-number">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Assets</h3>
+                            <p id="total-assets" class="stat-number">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Emails</h3>
+                            <p id="total-emails" class="stat-number">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="status-section">
+                    <h2>Recent Game Scores</h2>
+                    <div id="recent-games" class="data-table">
+                        <p>Loading...</p>
+                    </div>
+                </section>
+
+                <section class="updates-section">
+                    <h2>Real-Time Updates</h2>
+                    <div id="updates-log" class="updates-log">
+                        <p style="color: #00ff00;">Waiting for updates...</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- INSERT DATA PAGE -->
+            <div id="insert-data" class="page">
+                <h1>Insert Data into Supabase</h1>
+                
+                <div id="message" class="message"></div>
+
+                <!-- INSERT GAME -->
+                <div class="form-section">
+                    <h2>Insert Game Data</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Game Title</label>
+                            <input type="text" id="game-title" placeholder="e.g., Asteroid Blaster">
+                        </div>
+                        <div class="form-group">
+                            <label>Player Name</label>
+                            <input type="text" id="player-name" placeholder="e.g., Victor">
+                        </div>
+                        <div class="form-group">
+                            <label>Score</label>
+                            <input type="number" id="game-score" placeholder="e.g., 5000">
+                        </div>
+                        <div class="form-group">
+                            <label>Level</label>
+                            <input type="number" id="game-level" placeholder="e.g., 10">
+                        </div>
+                        <div class="form-group">
+                            <label>Game Status</label>
+                            <select id="game-status">
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="btn btn-primary" onclick="insertGame()">Insert Game</button>
+                        <button class="btn btn-success" onclick="insertSampleGames()">Insert Sample Games</button>
+                    </div>
+                </div>
+
+                <!-- INSERT USER -->
+                <div class="form-section">
+                    <h2>Insert User Data</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="username" placeholder="e.g., victor_player">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="user-email" placeholder="e.g., victor@velectron.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Score</label>
+                            <input type="number" id="total-score" placeholder="e.g., 10000">
+                        </div>
+                        <div class="form-group">
+                            <label>Games Played</label>
+                            <input type="number" id="games-played" placeholder="e.g., 5">
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="btn btn-primary" onclick="insertUser()">Insert User</button>
+                        <button class="btn btn-success" onclick="insertSampleUsers()">Insert Sample Users</button>
+                    </div>
+                </div>
+
+                <!-- INSERT EMAIL -->
+                <div class="form-section">
+                    <h2>Insert Email Data</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="email-address" placeholder="e.g., user@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="email-username" placeholder="e.g., username">
+                        </div>
+                        <div class="form-group">
+                            <label>Organization</label>
+                            <input type="text" id="organization" placeholder="e.g., Velectron">
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="btn btn-primary" onclick="insertEmail()">Insert Email</button>
+                        <button class="btn btn-success" onclick="insertSampleEmails()">Insert Sample Emails</button>
+                    </div>
+                </div>
+
+                <!-- INSERT ASSET -->
+                <div class="form-section">
+                    <h2>Insert Asset Data</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Asset Name</label>
+                            <input type="text" id="asset-name" placeholder="e.g., Player Sprite">
+                        </div>
+                        <div class="form-group">
+                            <label>Asset Type</label>
+                            <input type="text" id="asset-type" placeholder="e.g., Image">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" id="asset-category" placeholder="e.g., Graphics">
+                        </div>
+                        <div class="form-group">
+                            <label>File URL</label>
+                            <input type="url" id="asset-url" placeholder="e.g., https://example.com/asset.png">
+                        </div>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="btn btn-primary" onclick="insertAsset()">Insert Asset</button>
+                        <button class="btn btn-success" onclick="insertSampleAssets()">Insert Sample Assets</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGENTS PAGE -->
+            <div id="agents" class="page">
+                <h1>Agent Management</h1>
+                
+                <section class="agents-section">
+                    <div class="agent-card">
+                        <h3>🎮 Gaming Creator</h3>
+                        <p>Creates games, manages leaderboards, stores assets</p>
+                        <div class="agent-status">Status: <span id="gaming-agent-status">🔴 Offline</span></div>
+                        <button onclick="connectAgent('gaming')">Connect</button>
+                    </div>
+
+                    <div class="agent-card">
+                        <h3>📊 Data Collector</h3>
+                        <p>Collects user data, stores in Supabase</p>
+                        <div class="agent-status">Status: <span id="data-agent-status">🔴 Offline</span></div>
+                        <button onclick="connectAgent('data')">Connect</button>
+                    </div>
+
+                    <div class="agent-card">
+                        <h3>📧 Email Auto-Responder</h3>
+                        <p>Processes emails, generates responses</p>
+                        <div class="agent-status">Status: <span id="email-agent-status">🔴 Offline</span></div>
+                        <button onclick="connectAgent('email')">Connect</button>
+                    </div>
+
+                    <div class="agent-card">
+                        <h3>📮 Follow-Up Email Assistant</h3>
+                        <p>Manages assets, tracks resources</p>
+                        <div class="agent-status">Status: <span id="followup-agent-status">🔴 Offline</span></div>
+                        <button onclick="connectAgent('followup')">Connect</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- LEADERBOARD PAGE -->
+            <div id="leaderboard" class="page">
+                <h1>Game Leaderboard</h1>
+                
+                <section class="status-section">
+                    <div id="leaderboard-table" class="data-table">
+                        <p>Loading leaderboard...</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- USERS PAGE -->
+            <div id="users" class="page">
+                <h1>User Management</h1>
+                
+                <section class="status-section">
+                    <div id="users-table" class="data-table">
+                        <p>Loading users...</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ASSETS PAGE -->
+            <div id="assets" class="page">
+                <h1>Asset Management</h1>
+                
+                <section class="status-section">
+                    <div id="assets-table" class="data-table">
+                        <p>Loading assets...</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- EMAILS PAGE -->
+            <div id="emails" class="page">
+                <h1>Email Data</h1>
+                
+                <section class="status-section">
+                    <div id="emails-table" class="data-table">
+                        <p>Loading emails...</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // SUPABASE CONFIGURATION
+        const SUPABASE_URL = "https://gyaayoiubitxixevvzut.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_z6fbIppsOlrljaecVuCI_w_6xdhGFM3";
+
+        let supabaseClient;
+
+        // Initialize on page load
+        window.addEventListener('load', async function() {
+            await connectToSupabase();
+            await loadStats();
+            await loadRecentGames();
+            subscribeToUpdates();
+        });
+
+        // Initialize Supabase
+        async function connectToSupabase() {
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                const { data, error } = await supabaseClient.from('games').select('count');
+                
+                if (error) throw error;
+                
+                updateStatus('supabase-status', true, '🟢 Connected');
+                console.log('✅ Supabase connected');
+                return true;
+            } catch (error) {
+                updateStatus('supabase-status', false, '🔴 Failed');
+                console.error('❌ Supabase connection failed:', error);
+                return false;
+            }
+        }
+
+        // Update status indicator
+        function updateStatus(elementId, isOnline, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+                element.className = isOnline ? 'status-indicator online' : 'status-indicator offline';
+            }
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.className = 'message';
+            }, 3000);
+        }
+
+        // INSERT GAME
+        async function insertGame() {
+            try {
+                const gameTitle = document.getElementById('game-title').value;
+                const playerName = document.getElementById('player-name').value;
+                const score = parseInt(document.getElementById('game-score').value);
+                const level = parseInt(document.getElementById('game-level').value);
+                const gameStatus = document.getElementById('game-status').value;
+
+                if (!gameTitle || !playerName || !score) {
+                    showMessage('❌ Please fill in all required fields', 'error');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('games')
+                    .insert([{
+                        game_title: gameTitle,
+                        player_name: playerName,
+                        score: score,
+                        level: level,
+                        game_status: gameStatus
+                    }]);
+
+                if (error) throw error;
+
+                showMessage('✅ Game inserted successfully!', 'success');
+                document.getElementById('game-title').value = '';
+                document.getElementById('player-name').value = '';
+                document.getElementById('game-score').value = '';
+                document.getElementById('game-level').value = '';
+                
+                await loadStats();
+                await loadRecentGames();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // INSERT SAMPLE GAMES
+        async function insertSampleGames() {
+            try {
+                const sampleGames = [
+                    { game_title: 'Asteroid Blaster', player_name: 'Victor', score: 5000, level: 10, game_status: 'Completed' },
+                    { game_title: 'Space Invaders', player_name: 'Master', score: 8500, level: 15, game_status: 'Completed' },
+                    { game_title: 'Pac-Man', player_name: 'Champion', score: 12000, level: 20, game_status: 'Completed' },
+                    { game_title: 'Tetris', player_name: 'Player1', score: 3500, level: 8, game_status: 'In Progress' },
+                    { game_title: 'Flappy Bird', player_name: 'Player2', score: 450, level: 5, game_status: 'Completed' }
+                ];
+
+                const { data, error } = await supabaseClient
+                    .from('games')
+                    .insert(sampleGames);
+
+                if (error) throw error;
+
+                showMessage('✅ Sample games inserted successfully!', 'success');
+                await loadStats();
+                await loadRecentGames();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // INSERT USER
+        async function insertUser() {
+            try {
+                const username = document.getElementById('username').value;
+                const email = document.getElementById('user-email').value;
+                const totalScore = parseInt(document.getElementById('total-score').value) || 0;
+                const gamesPlayed = parseInt(document.getElementById('games-played').value) || 0;
+
+                if (!username || !email) {
+                    showMessage('❌ Please fill in all required fields', 'error');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .insert([{
+                        username: username,
+                        email: email,
+                        total_score: totalScore,
+                        games_played: gamesPlayed
+                    }]);
+
+                if (error) throw error;
+
+                showMessage('✅ User inserted successfully!', 'success');
+                document.getElementById('username').value = '';
+                document.getElementById('user-email').value = '';
+                document.getElementById('total-score').value = '';
+                document.getElementById('games-played').value = '';
+                
+                await loadStats();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // INSERT SAMPLE USERS
+        async function insertSampleUsers() {
+            try {
+                const sampleUsers = [
+                    { username: 'victor_player', email: 'victor@velectron.com', total_score: 10000, games_played: 5 },
+                    { username: 'master_gamer', email: 'master@velectron.com', total_score: 25000, games_played: 12 },
+                    { username: 'champion_pro', email: 'champion@velectron.com', total_score: 50000, games_played: 25 }
+                ];
+
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .insert(sampleUsers);
+
+                if (error) throw error;
+
+                showMessage('✅ Sample users inserted successfully!', 'success');
+                await loadStats();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // INSERT EMAIL
+        async function insertEmail() {
+            try {
+                const email = document.getElementById('email-address').value;
+                const username = document.getElementById('email-username').value;
+                const organization = document.getElementById('organization').value;
+
+                if (!email) {
+                    showMessage('❌ Please fill in email address', 'error');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('email_data')
+                    .insert([{
+                        email: email,
+                        username: username || null,
+                        organization: organization || null
+                    }]);
+
+                if (error) throw error;
+
+                showMessage('✅ Email inserted successfully!', 'success');
+                document.getElementById('email-address').value = '';
+                document.getElementById('email-username').value = '';
+                document.getElementById('organization').value = '';
+                
+                await loadStats();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // INSERT SAMPLE EMAILS
+        async function insertSampleEmails() {
+            try {
+                const sampleEmails = [
+                    { email: 'user1@example.com', username: 'user1', organization: 'Tech Corp' },
+                    { email: 'user2@example.com', username: 'user2', organization: 'Game Studio' },
+                    { email: 'user3@example.com', username: 'user3', organization: 'Velectron' }
+                ];
+
+                const { data, error } = await supabaseClient
+                    .from('email_data')
+                    .insert(sampleEmails);
+
+                if (error) throw error;
+
+                showMessage('✅ Sample emails inserted successfully!', 'success');
+                await loadStats();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // INSERT ASSET
+        async function insertAsset() {
+            try {
+                const assetName = document.getElementById('asset-name').value;
+                const assetType = document.getElementById('asset-type').value;
+                const category = document.getElementById('asset-category').value;
+                const fileUrl = document.getElementById('asset-url').value;
+
+                if (!assetName) {
+                    showMessage('❌ Please fill in asset name', 'error');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('assets')
+                    .insert([{
+                        asset_name: assetName,
+                        asset_type: assetType || null,
+                        category: category || null,
+                        file_url: fileUrl || null
+                    }]);
+
+                if (error) throw error;
+
+                showMessage('✅ Asset inserted successfully!', 'success');
+                document.getElementById('asset-name').value = '';
+                document.getElementById('asset-type').value = '';
+                document.getElementById('asset-category').value = '';
+                document.getElementById('asset-url').value = '';
+                
+                await loadStats();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // INSERT SAMPLE ASSETS
+        async function insertSampleAssets() {
+            try {
+                const sampleAssets = [
+                    { asset_name: 'Player Sprite', asset_type: 'Image', category: 'Graphics', file_url: 'https://example.com/player.png' },
+                    { asset_name: 'Enemy Model', asset_type: '3D Model', category: 'Graphics', file_url: 'https://example.com/enemy.obj' },
+                    { asset_name: 'Background Music', asset_type: 'Audio', category: 'Sound', file_url: 'https://example.com/music.mp3' }
+                ];
+
+                const { data, error } = await supabaseClient
+                    .from('assets')
+                    .insert(sampleAssets);
+
+                if (error) throw error;
+
+                showMessage('✅ Sample assets inserted successfully!', 'success');
+                await loadStats();
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const { count: gamesCount } = await supabaseClient
+                    .from('games')
+                    .select('*', { count: 'exact', head: true });
+                
+                const { count: usersCount } = await supabaseClient
+                    .from('users')
+                    .select('*', { count: 'exact', head: true });
+                
+                const { count: assetsCount } = await supabaseClient
+                    .from('assets')
+                    .select('*', { count: 'exact', head: true });
+                
+                const { count: emailsCount } = await supabaseClient
+                    .from('email_data')
+                    .select('*', { count: 'exact', head: true });
+                
+                document.getElementById('total-games').textContent = gamesCount || 0;
+                document.getElementById('total-users').textContent = usersCount || 0;
+                document.getElementById('total-assets').textContent = assetsCount || 0;
+                document.getElementById('total-emails').textContent = emailsCount || 0;
+                
+                console.log('✅ Stats loaded');
+            } catch (error) {
+                console.error('❌ Error loading stats:', error);
+            }
+        }
+
+        // Load recent games
+        async function loadRecentGames() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('games')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (error) throw error;
+                
+                const table = document.getElementById('recent-games');
+                
+                if (!data || data.length === 0) {
+                    table.innerHTML = '<p>No games yet</p>';
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Game</th>
+                                <th>Score</th>
+                                <th>Level</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach(game => {
+                    html += `
+                        <tr>
+                            <td>${game.player_name}</td>
+                            <td>${game.game_title}</td>
+                            <td><strong>${game.score}</strong></td>
+                            <td>${game.level || 'N/A'}</td>
+                            <td>${game.game_status}</td>
+                            <td>${new Date(game.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                table.innerHTML = html;
+                
+                console.log('✅ Recent games loaded');
+            } catch (error) {
+                console.error('❌ Error loading games:', error);
+            }
+        }
+
+        // Load leaderboard
+        async function loadLeaderboard() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('games')
+                    .select('*')
+                    .order('score', { ascending: false })
+                    .limit(100);
+                
+                if (error) throw error;
+                
+                const table = document.getElementById('leaderboard-table');
+                
+                if (!data || data.length === 0) {
+                    table.innerHTML = '<p>No games yet</p>';
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Game</th>
+                                <th>Score</th>
+                                <th>Level</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach((game, index) => {
+                    html += `
+                        <tr>
+                            <td><strong>#${index + 1}</strong></td>
+                            <td>${game.player_name}</td>
+                            <td>${game.game_title}</td>
+                            <td><strong style="color: #667eea;">${game.score}</strong></td>
+                            <td>${game.level || 'N/A'}</td>
+                            <td>${new Date(game.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                table.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                const table = document.getElementById('users-table');
+                
+                if (!data || data.length === 0) {
+                    table.innerHTML = '<p>No users yet</p>';
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Total Score</th>
+                                <th>Games Played</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach(user => {
+                    html += `
+                        <tr>
+                            <td>${user.username}</td>
+                            <td>${user.email}</td>
+                            <td><strong>${user.total_score}</strong></td>
+                            <td>${user.games_played}</td>
+                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                table.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Load assets
+        async function loadAssets() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('assets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                const table = document.getElementById('assets-table');
+                
+                if (!data || data.length === 0) {
+                    table.innerHTML = '<p>No assets yet</p>';
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Asset Name</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>File URL</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach(asset => {
+                    html += `
+                        <tr>
+                            <td>${asset.asset_name}</td>
+                            <td>${asset.asset_type}</td>
+                            <td>${asset.category}</td>
+                            <td><a href="${asset.file_url}" target="_blank">View</a></td>
+                            <td>${new Date(asset.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                table.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading assets:', error);
+            }
+        }
+
+        // Load emails
+        async function loadEmails() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('email_data')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                const table = document.getElementById('emails-table');
+                
+                if (!data || data.length === 0) {
+                    table.innerHTML = '<p>No emails yet</p>';
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Username</th>
+                                <th>Organization</th>
+                                <th>Received</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach(email => {
+                    html += `
+                        <tr>
+                            <td>${email.email}</td>
+                            <td>${email.username || 'N/A'}</td>
+                            <td>${email.organization || 'N/A'}</td>
+                            <td>${new Date(email.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                table.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading emails:', error);
+            }
+        }
+
+        // Subscribe to real-time updates
+        function subscribeToUpdates() {
+            const updatesLog = document.getElementById('updates-log');
+            updatesLog.innerHTML = '';
+            
+            supabaseClient
+                .from('games')
+                .on('*', payload => {
+                    addUpdate(`🎮 Game: ${payload.new?.player_name} scored ${payload.new?.score}`);
+                    loadStats();
+                })
+                .subscribe();
+            
+            supabaseClient
+                .from('users')
+                .on('*', payload => {
+                    addUpdate(`👤 User: ${payload.new?.username} joined`);
+                    loadStats();
+                })
+                .subscribe();
+            
+            supabaseClient
+                .from('email_data')
+                .on('*', payload => {
+                    addUpdate(`📧 Email: ${payload.new?.email} received`);
+                    loadStats();
+                })
+                .subscribe();
+            
+            supabaseClient
+                .from('assets')
+                .on('*', payload => {
+                    addUpdate(`🎨 Asset: ${payload.new?.asset_name} added`);
+                    loadStats();
+                })
+                .subscribe();
+            
+            console.log('✅ Real-time subscriptions active');
+        }
+
+        // Add update to log
+        function addUpdate(message) {
+            const updatesLog = document.getElementById('updates-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const updateItem = document.createElement('div');
+            updateItem.className = 'update-item';
+            updateItem.textContent = `[${timestamp}] ${message}`;
+            updatesLog.insertBefore(updateItem, updatesLog.firstChild);
+            
+            while (updatesLog.children.length > 50) {
+                updatesLog.removeChild(updatesLog.lastChild);
+            }
+        }
+
+        // Show page
+        function showPage(pageName) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            
+            // Remove active from all nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            
+            // Show selected page
+            document.getElementById(pageName).classList.add('active');
+            
+            // Add active to clicked nav link
+            event.target.classList.add('active');
+            
+            // Load data for the page
+            if (pageName === 'leaderboard') {
+                loadLeaderboard();
+            } else if (pageName === 'users') {
+                loadUsers();
+            } else if (pageName === 'assets') {
+                loadAssets();
+            } else if (pageName === 'emails') {
+                loadEmails();
+            }
+        }
+
+        // Connect agent
+        function connectAgent(agentType) {
+            alert(`Connecting ${agentType} agent...`);
+        }
+    </script>
+</body>
+</html>
