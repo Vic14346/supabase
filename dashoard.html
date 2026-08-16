@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velectron Command Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #ec4899;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Navigation Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, var(--card-bg) 0%, #0f172a 100%);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 12px 15px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-primary);
+            border-left-color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Page Sections */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Status Cards */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, var(--card-bg), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .status-card-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-card-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.online {
+            background-color: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.offline {
+            background-color: var(--danger-color);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Tables */
+        .table-container {
+            background: linear-gradient(135deg, var(--card-bg), rgba(139, 92, 246, 0.05));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Agent Cards */
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .agent-card {
+            background: linear-gradient(135deg, var(--card-bg), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .agent-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .agent-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .agent-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .agent-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .agent-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .status-grid,
+            .stats-grid,
+            .agent-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">⚡ Velectron</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a class="nav-link active" onclick="showPage('dashboard')">📊 Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="showPage('agents')">🤖 Agents</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="showPage('leaderboard')">🏆 Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="showPage('users')">👥 Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="showPage('assets')">📦 Assets</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="showPage('emails')">📧 Emails</a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="user-info">
+                    <span id="user-email">victor.j.belda@gmail.com</span>
+                    <div class="user-avatar">VB</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <h2 style="margin-bottom: 20px; color: var(--text-secondary);">System Status</h2>
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div class="status-card-title">Supabase Connection</div>
+                        <div class="status-card-value"><span class="status-indicator online"></span>Connected</div>
+                        <div class="status-text">Real-time sync active</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-title">Gaming Creator</div>
+                        <div class="status-card-value"><span class="status-indicator online"></span>Active</div>
+                        <div class="status-text">Processing games</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-title">Data Collector</div>
+                        <div class="status-card-value"><span class="status-indicator online"></span>Active</div>
+                        <div class="status-text">Collecting data</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-title">Email Auto-Responder</div>
+                        <div class="status-card-value"><span class="status-indicator online"></span>Active</div>
+                        <div class="status-text">Sending emails</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 20px; margin-top: 30px; color: var(--text-secondary);">Quick Stats</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-games">0</div>
+                        <div class="stat-label">Total Games</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-users">0</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-assets">0</div>
+                        <div class="stat-label">Total Assets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-emails">0</div>
+                        <div class="stat-label">Total Emails</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 20px; margin-top: 30px; color: var(--text-secondary);">Recent Game Scores</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Game</th>
+                                <th>Score</th>
+                                <th>Level</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-scores-table">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary);"><span class="loading"></span> Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 style="margin-bottom: 20px; margin-top: 30px; color: var(--text-secondary);">Real-time Updates Log</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="updates-log">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: var(--text-secondary);">Waiting for updates...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Agents Page -->
+            <div id="agents" class="page">
+                <h2 style="margin-bottom: 30px; color: var(--text-secondary);">Active Agents</h2>
+                <div class="agent-grid">
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-icon">🎮</div>
+                            <div class="agent-info">
+                                <h3>Gaming Creator</h3>
+                                <div class="agent-status"><span class="status-indicator online"></span>Online</div>
+                            </div>
+                        </div>
+                        <div class="agent-description">Creates and manages gaming experiences. Processes game data and generates new game instances.</div>
+                        <div class="agent-actions">
+                            <button class="btn btn-primary btn-small">Connect</button>
+                            <button class="btn btn-secondary btn-small">Details</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-icon">📊</div>
+                            <div class="agent-info">
+                                <h3>Data Collector</h3>
+                                <div class="agent-status"><span class="status-indicator online"></span>Online</div>
+                            </div>
+                        </div>
+                        <div class="agent-description">Collects and aggregates data from various sources. Maintains data integrity and real-time synchronization.</div>
+                        <div class="agent-actions">
+                            <button class="btn btn-primary btn-small">Connect</button>
+                            <button class="btn btn-secondary btn-small">Details</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-icon">📧</div>
+                            <div class="agent-info">
+                                <h3>Email Auto-Responder</h3>
+                                <div class="agent-status"><span class="status-indicator online"></span>Online</div>
+                            </div>
+                        </div>
+                        <div class="agent-description">Automatically responds to incoming emails. Manages email workflows and user communications.</div>
+                        <div class="agent-actions">
+                            <button class="btn btn-primary btn-small">Connect</button>
+                            <button class="btn btn-secondary btn-small">Details</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-icon">💬</div>
+                            <div class="agent-info">
+                                <h3>Follow-Up Email Assistant</h3>
+                                <div class="agent-status"><span class="status-indicator online"></span>Online</div>
+                            </div>
+                        </div>
+                        <div class="agent-description">Manages follow-up email sequences. Tracks engagement and optimizes communication timing.</div>
+                        <div class="agent-actions">
+                            <button class="btn btn-primary btn-small">Connect</button>
+                            <button class="btn btn-secondary btn-small">Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Page -->
+            <div id="leaderboard" class="page">
+                <h2 style="margin-bottom: 20px; color: var(--text-secondary);">Top Game Scores</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Game</th>
+                                <th>Score</th>
+                                <th>Level</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-table">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-secondary);"><span class="loading"></span> Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="users" class="page">
+                <h2 style="margin-bottom: 20px; color: var(--text-secondary);">All Users</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Total Score</th>
+                                <th>Games Played</th>
+                                <th>Joined Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary);"><span class="loading"></span> Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Assets Page -->
+            <div id="assets" class="page">
+                <h2 style="margin-bottom: 20px; color: var(--text-secondary);">All Assets</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Asset Name</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>File URL</th>
+                                <th>Created Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assets-table">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary);"><span class="loading"></span> Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Emails Page -->
+            <div id="emails" class="page">
+                <h2 style="margin-bottom: 20px; color: var(--text-secondary);">Email Data</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Username</th>
+                                <th>Organization</th>
+                                <th>Received Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emails-table">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-secondary);"><span class="loading"></span> Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://gyaayoiubitxixevvzut.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_z6fbIppsOlrljaecVuCI_w_6xdhGFM3';
+
+        // Initialize Supabase Client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Page Navigation
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Show selected page
+            document.getElementById(pageName).classList.add('active');
+
+            // Add active class to clicked nav link
+            event.target.classList.add('active');
+
+            // Update page title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'agents': 'Agents',
+                'leaderboard': 'Leaderboard',
+                'users': 'Users',
+                'assets': 'Assets',
+                'emails': 'Emails'
+            };
+            document.getElementById('page-title').textContent = titles[pageName];
+
+            // Load data for the page
+            if (pageName === 'leaderboard') loadLeaderboard();
+            if (pageName === 'users') loadUsers();
+            if (pageName === 'assets') loadAssets();
+            if (pageName === 'emails') loadEmails();
+        }
+
+        // Load Dashboard Data
+        async function loadDashboardData() {
+            try {
+                // Load games count
+                const { count: gamesCount } = await supabase
+                    .from('games')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('total-games').textContent = gamesCount || 0;
+
+                // Load users count
+                const { count: usersCount } = await supabase
+                    .from('users')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('total-users').textContent = usersCount || 0;
+
+                // Load assets count
+                const { count: assetsCount } = await supabase
+                    .from('assets')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('total-assets').textContent = assetsCount || 0;
+
+                // Load emails count
+                const { count: emailsCount } = await supabase
+                    .from('email_data')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('total-emails').textContent = emailsCount || 0;
+
+                // Load recent game scores
+                const { data: recentScores } = await supabase
+                    .from('game_resources')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                const scoresTable = document.getElementById('recent-scores-table');
+                if (recentScores && recentScores.length > 0) {
+                    scoresTable.innerHTML = recentScores.map(score => `
+                        <tr>
+                            <td>${score.player_name || 'Unknown'}</td>
+                            <td>${score.game_name || 'N/A'}</td>
+                            <td><strong>${score.score || 0}</strong></td>
+                            <td>${score.level || 1}</td>
+                            <td>${new Date(score.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    scoresTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No recent scores</td></tr>';
+                }
+
+                // Add update log entry
+                addUpdateLog('Dashboard loaded', 'success');
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                addUpdateLog('Error loading dashboard', 'error');
+            }
+        }
+
+        // Load Leaderboard
+        async function loadLeaderboard() {
+            try {
+                const { data: scores } = await supabase
+                    .from('game_resources')
+                    .select('*')
+                    .order('score', { ascending: false })
+                    .limit(100);
+
+                const table = document.getElementById('leaderboard-table');
+                if (scores && scores.length > 0) {
+                    table.innerHTML = scores.map((score, index) => `
+                        <tr>
+                            <td><strong>#${index + 1}</strong></td>
+                            <td>${score.player_name || 'Unknown'}</td>
+                            <td>${score.game_name || 'N/A'}</td>
+                            <td><strong>${score.score || 0}</strong></td>
+                            <td>${score.level || 1}</td>
+                            <td>${new Date(score.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No scores available</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+
+        // Load Users
+        async function loadUsers() {
+            try {
+                const { data: users } = await supabase
+                    .from('users')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                const table = document.getElementById('users-table');
+                if (users && users.length > 0) {
+                    table.innerHTML = users.map(user => `
+                        <tr>
+                            <td>${user.username || 'N/A'}</td>
+                            <td>${user.email || 'N/A'}</td>
+                            <td><strong>${user.total_score || 0}</strong></td>
+                            <td>${user.games_played || 0}</td>
+                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    table.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No users found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Load Assets
+        async function loadAssets() {
+            try {
+                const { data: assets } = await supabase
+                    .from('assets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                const table = document.getElementById('assets-table');
+                if (assets && assets.length > 0) {
+                    table.innerHTML = assets.map(asset => `
+                        <tr>
+                            <td>${asset.asset_name || 'N/A'}</td>
+                            <td>${asset.type || 'N/A'}</td>
+                            <td>${asset.category || 'N/A'}</td>
+                            <td><a href="${asset.file_url}" target="_blank" style="color: var(--primary-color);">View</a></td>
+                            <td>${new Date(asset.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    table.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No assets found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading assets:', error);
+            }
+        }
+
+        // Load Emails
+        async function loadEmails() {
+            try {
+                const { data: emails } = await supabase
+                    .from('email_data')
+                    .select('*')
+                    .order('received_date', { ascending: false });
+
+                const table = document.getElementById('emails-table');
+                if (emails && emails.length > 0) {
+                    table.innerHTML = emails.map(email => `
+                        <tr>
+                            <td>${email.email || 'N/A'}</td>
+                            <td>${email.username || 'N/A'}</td>
+                            <td>${email.organization || 'N/A'}</td>
+                            <td>${new Date(email.received_date).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    table.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">No emails found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading emails:', error);
+            }
+        }
+
+        // Add Update Log Entry
+        function addUpdateLog(event, status) {
+            const logsTable = document.getElementById('updates-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const statusBadge = `<span class="badge badge-${status === 'success' ? 'success' : 'danger'}">${status.toUpperCase()}</span>`;
+            
+            const newRow = `<tr>
+                <td>${timestamp}</td>
+                <td>${event}</td>
+                <td>${statusBadge}</td>
+            </tr>`;
+
+            if (logsTable.innerHTML.includes('Waiting for updates')) {
+                logsTable.innerHTML = newRow;
+            } else {
+                logsTable.insertAdjacentHTML('afterbegin', newRow);
+                // Keep only last 10 entries
+                while (logsTable.children.length > 10) {
+                    logsTable.removeChild(logsTable.lastChild);
+                }
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load Supabase library
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+            script.onload = () => {
+                loadDashboardData();
+                // Refresh dashboard data every 30 seconds
+                setInterval(loadDashboardData, 30000);
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>
+Gist Filename
